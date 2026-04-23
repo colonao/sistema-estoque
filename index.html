@@ -3,30 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌱 Controle de Estoque Agrícola</title>
+  <title>🌱 Controle de Insumos Agrícolas</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <header class="header">
-    <h1>🌱 Controle de Estoque Agrícola</h1>
-    <p>Fazenda Fazendinha</p>
+  <header>
+    <h1>🌱 Controle de Insumos</h1>
   </header>
 
+  <!-- ABAS -->
   <nav class="tabs">
-    <button class="tab-btn active" data-tab="aba-estoque">📦 Estoque</button>
-    <button class="tab-btn" data-tab="aba-entrada">⬇️ Entrada</button>
-    <button class="tab-btn" data-tab="aba-saida">⬆️ Saída</button>
-    <button class="tab-btn" data-tab="aba-historico">📜 Histórico</button>
+    <button class="tab-btn active" data-tab="tab-estoque">📦 Estoque</button>
+    <button class="tab-btn" data-tab="tab-entrada">⬇️ Entrada</button>
+    <button class="tab-btn" data-tab="tab-saida">⬆️ Saída</button>
+    <button class="tab-btn" data-tab="tab-historico">📋 Histórico</button>
   </nav>
 
-  <main class="container">
-
-    <!-- ABA ESTOQUE -->
-    <section id="aba-estoque" class="tab-content active">
-      <h2>Estoque Atual</h2>
-      <input type="text" id="filtro-estoque" class="filtro" placeholder="🔍 Buscar produto, ingrediente ou classe...">
-      
+  <main>
+    <!-- ESTOQUE -->
+    <section id="tab-estoque" class="tab-content active">
+      <h2>📦 Estoque Atual</h2>
+      <input type="text" id="filtro-estoque" placeholder="🔍 Buscar por produto, ingrediente ou classe...">
       <div class="tabela-wrapper">
         <table>
           <thead>
@@ -37,116 +34,99 @@
               <th>Quantidade</th>
             </tr>
           </thead>
-          <tbody id="tabela-estoque">
-            <tr><td colspan="4" style="text-align:center;padding:20px">Carregando...</td></tr>
-          </tbody>
+          <tbody id="tabela-estoque"></tbody>
         </table>
       </div>
     </section>
 
-    <!-- ABA ENTRADA -->
-    <section id="aba-entrada" class="tab-content">
-      <h2>Registrar Entrada</h2>
-      
-      <form id="form-entrada" class="formulario">
-        
-        <div class="campo autocomplete-wrapper">
-          <label>Produto *</label>
-          <input type="text" id="entrada-produto" autocomplete="off" required placeholder="Digite para buscar...">
-          <div id="entrada-sugestoes" class="sugestoes-box"></div>
-          <div id="entrada-info"></div>
+    <!-- ENTRADA -->
+    <section id="tab-entrada" class="tab-content">
+      <h2>⬇️ Registrar Entrada</h2>
+      <form id="form-entrada">
+        <label>Produto *</label>
+        <div class="autocomplete-wrapper">
+          <input type="text" id="entrada-produto" placeholder="Digite para buscar..." autocomplete="off" required>
+          <div id="entrada-sugestoes" class="sugestoes"></div>
         </div>
+        <div id="entrada-info"></div>
 
-        <div class="linha">
-          <div class="campo">
+        <div class="form-row">
+          <div class="form-col">
             <label>Quantidade *</label>
             <input type="number" id="entrada-quantidade" step="0.01" min="0.01" required>
           </div>
-          <div class="campo">
+          <div class="form-col">
             <label>Unidade *</label>
             <select id="entrada-unidade" required>
               <option value="">Selecione</option>
-              <option value="L">Litros (L)</option>
-           <!-- 
-              <option value="mL">Mililitros (mL)</option>
-              -->
-              <option value="Kg">Quilogramas (Kg)</option>
-           <!--
-              <option value="g">Gramas (g)</option>
-              <option value="un">Unidades (un)</option>
-              <option value="cx">Caixas (cx)</option>
-              <option value="sc">Sacos (sc)</option> 
-              -->
-            </select> 
+              <option value="kg">kg</option>
+              <option value="L">L</option>
+              <option value="un">un</option>
+              <option value="sc">sc</option>
+              <option value="g">g</option>
+              <option value="mL">mL</option>
+            </select>
           </div>
-        </div>      
-        <div class="campo">
-          <label>Origem / Fornecedor *</label>
-          <input type="text" id="entrada-origem" required placeholder="Ex: Agropecuária XYZ">
         </div>
 
-        <div class="campo">
-          <label>Responsável *</label>
-          <input type="text" id="entrada-responsavel" required placeholder="Nome de quem recebeu">
-        </div>
+        <label>Origem * <small>(fornecedor, revenda, etc)</small></label>
+        <input type="text" id="entrada-origem" placeholder="Ex: Agropecuária Central" required>
 
-        <div class="campo">
-          <label>Observação</label>
-          <textarea id="entrada-observacao" rows="2" placeholder="Opcional"></textarea>
-        </div>
+        <label>Destino * <small>(local de armazenamento)</small></label>
+        <input type="text" id="entrada-destino" placeholder="Ex: Depósito 1, Galpão Principal" required>
+
+        <label>Responsável *</label>
+        <input type="text" id="entrada-responsavel" placeholder="Nome de quem registrou" required>
+
+        <label>Observação</label>
+        <textarea id="entrada-observacao" rows="2" placeholder="Opcional"></textarea>
 
         <button type="submit" class="btn-primary">✅ Registrar Entrada</button>
       </form>
     </section>
 
-    <!-- ABA SAÍDA -->
-    <section id="aba-saida" class="tab-content">
-      <h2>Registrar Saída</h2>
-      
-      <form id="form-saida" class="formulario">
-
-        <div class="campo autocomplete-wrapper">
-          <label>Produto *</label>
-          <input type="text" id="saida-produto" autocomplete="off" required placeholder="Digite para buscar...">
-          <div id="saida-sugestoes" class="sugestoes-box"></div>
-          <div id="saida-info"></div>
+    <!-- SAÍDA -->
+    <section id="tab-saida" class="tab-content">
+      <h2>⬆️ Registrar Saída</h2>
+      <form id="form-saida">
+        <label>Produto *</label>
+        <div class="autocomplete-wrapper">
+          <input type="text" id="saida-produto" placeholder="Digite para buscar no estoque..." autocomplete="off" required>
+          <div id="saida-sugestoes" class="sugestoes"></div>
         </div>
+        <div id="saida-info"></div>
 
-        <div class="linha">
-          <div class="campo">
+        <div class="form-row">
+          <div class="form-col">
             <label>Quantidade *</label>
             <input type="number" id="saida-quantidade" step="0.01" min="0.01" required>
           </div>
-          <div class="campo">
-            <label>Unidade *</label>
-            <input type="text" id="saida-unidade" readonly placeholder="Auto">
+          <div class="form-col">
+            <label>Unidade</label>
+            <input type="text" id="saida-unidade" readonly>
           </div>
         </div>
 
-        <div class="campo">
-          <label>Destino / Uso *</label>
-          <input type="text" id="saida-destino" required placeholder="Ex: Talhão 3, Lavoura Norte">
-        </div>
+        <label>Origem * <small>(de onde saiu)</small></label>
+        <input type="text" id="saida-origem" placeholder="Ex: Depósito 1" required>
 
-        <div class="campo">
-          <label>Responsável *</label>
-          <input type="text" id="saida-responsavel" required placeholder="Nome de quem utilizou">
-        </div>
+        <label>Destino * <small>(talhão, área, aplicação)</small></label>
+        <input type="text" id="saida-destino" placeholder="Ex: Talhão 3, Lavoura Norte" required>
 
-        <div class="campo">
-          <label>Observação</label>
-          <textarea id="saida-observacao" rows="2" placeholder="Opcional"></textarea>
-        </div>
+        <label>Responsável *</label>
+        <input type="text" id="saida-responsavel" placeholder="Nome de quem registrou" required>
 
-        <button type="submit" class="btn-primary btn-saida">⬆️ Registrar Saída</button>
+        <label>Observação</label>
+        <textarea id="saida-observacao" rows="2" placeholder="Opcional"></textarea>
+
+        <button type="submit" class="btn-primary">✅ Registrar Saída</button>
       </form>
     </section>
 
-    <!-- ABA HISTÓRICO -->
-    <section id="aba-historico" class="tab-content">
-      <h2>Histórico de Movimentações</h2>
-      <input type="text" id="filtro-historico" class="filtro" placeholder="🔍 Buscar por produto, tipo ou responsável...">
-      
+    <!-- HISTÓRICO -->
+    <section id="tab-historico" class="tab-content">
+      <h2>📋 Histórico de Movimentações</h2>
+      <input type="text" id="filtro-historico" placeholder="🔍 Buscar por produto, tipo ou responsável...">
       <div class="tabela-wrapper">
         <table>
           <thead>
@@ -155,20 +135,17 @@
               <th>Data</th>
               <th>Tipo</th>
               <th>Produto</th>
-              <th>Qtd</th>
+              <th>Quantidade</th>
               <th>Origem</th>
               <th>Destino</th>
               <th>Responsável</th>
-              <th>Obs</th>
+              <th>Observação</th>
             </tr>
           </thead>
-          <tbody id="tabela-historico">
-            <tr><td colspan="9" style="text-align:center;padding:20px">Carregando...</td></tr>
-          </tbody>
+          <tbody id="tabela-historico"></tbody>
         </table>
       </div>
     </section>
-
   </main>
 
   <script src="app.js"></script>
