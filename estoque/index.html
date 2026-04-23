@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Sistema de Estoque</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-boxes-stacked"></i>
+                <span>EstoqueApp</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item active" data-page="dashboard">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </li>
+            <li class="nav-item" data-page="produtos">
+                <i class="fas fa-box"></i>
+                <span>Produtos</span>
+            </li>
+            <li class="nav-item" data-page="adicionar">
+                <i class="fas fa-plus-circle"></i>
+                <span>Adicionar</span>
+            </li>
+            <li class="nav-item" data-page="relatorios">
+                <i class="fas fa-file-alt"></i>
+                <span>Relatórios</span>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="connection-status" id="connectionStatus">
+                <i class="fas fa-circle"></i>
+                <span>Conectado</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="mobile-toggle" id="mobileToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Buscar produto...">
+                </div>
+                <button class="btn-icon" id="refreshBtn" title="Atualizar dados">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Pages Container -->
+        <div class="pages-container">
+            <!-- Dashboard Page -->
+            <section class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card stat-blue">
+                        <div class="stat-icon"><i class="fas fa-box"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statTotalProdutos">0</span>
+                            <span class="stat-label">Total Produtos</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-green">
+                        <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statTotalItens">0</span>
+                            <span class="stat-label">Itens em Estoque</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-purple">
+                        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statValorTotal">R$ 0</span>
+                            <span class="stat-label">Valor Total</span>
+                        </div>
+                    </div>
+                    <div class="stat-card stat-red">
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statEstoqueBaixo">0</span>
+                            <span class="stat-label">Estoque Baixo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tags"></i> Por Categoria</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="categoriasChart" class="chart-container"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-exclamation-circle"></i> Estoque Baixo (≤5)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="lowStockList" class="low-stock-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Produtos Page -->
+            <section class="page" id="page-produtos">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list"></i> Lista de Produtos</h3>
+                        <div class="card-actions">
+                            <select id="filterCategoria" class="select-filter">
+                                <option value="">Todas Categorias</option>
+                            </select>
+                            <select id="filterOrdem" class="select-filter">
+                                <option value="nome">Nome A-Z</option>
+                                <option value="nome-desc">Nome Z-A</option>
+                                <option value="qtd-asc">Menor Qtd</option>
+                                <option value="qtd-desc">Maior Qtd</option>
+                                <option value="preco-asc">Menor Preço</option>
+                                <option value="preco-desc">Maior Preço</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table" id="produtosTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Produto</th>
+                                        <th>Categoria</th>
+                                        <th>Quantidade</th>
+                                        <th>Preço Unit.</th>
+                                        <th>Valor Total</th>
+                                        <th>Fornecedor</th>
+                                        <th>Atualização</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="produtosBody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-empty" id="tableEmpty" style="display:none;">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhum produto encontrado</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Adicionar Page -->
+            <section class="page" id="page-adicionar">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h3 id="formTitle"><i class="fas fa-plus-circle"></i> Adicionar Produto</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="produtoForm">
+                            <input type="hidden" id="editId">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="produto">
+                                        <i class="fas fa-tag"></i> Nome do Produto *
+                                    </label>
+                                    <input type="text" id="produto" required placeholder="Ex: Camiseta Básica">
+                                </div>
+                                <div class="form-group">
+                                    <label for="categoria">
+                                        <i class="fas fa-folder"></i> Categoria *
+                                    </label>
+                                    <input type="text" id="categoria" required placeholder="Ex: Roupas" list="categoriasList">
+                                    <datalist id="categoriasList"></datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label for="quantidade">
+                                        <i class="fas fa-sort-numeric-up"></i> Quantidade *
+                                    </label>
+                                    <input type="number" id="quantidade" required min="0" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="preco">
+                                        <i class="fas fa-dollar-sign"></i> Preço Unitário (R$) *
+                                    </label>
+                                    <input type="number" id="preco" required min="0" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="fornecedor">
+                                        <i class="fas fa-truck"></i> Fornecedor
+                                    </label>
+                                    <input type="text" id="fornecedor" placeholder="Ex: Distribuidora XYZ">
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="btnSubmit">
+                                    <i class="fas fa-save"></i> Salvar Produto
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="btnCancel" style="display:none;">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Relatórios Page -->
+            <section class="page" id="page-relatorios">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-alt"></i> Relatórios</h3>
+                        <div class="card-actions">
+                            <button class="btn btn-primary btn-sm" id="btnExportCSV">
+                                <i class="fas fa-download"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="report-grid">
+                            <div class="report-section">
+                                <h4><i class="fas fa-chart-bar"></i> Resumo por Categoria</h4>
+                                <div id="reportCategorias" class="report-content"></div>
+                            </div>
+                            <div class="report-section">
+                                <h4><i class="fas fa-trophy"></i> Top 10 Produtos (por valor)</h4>
+                                <div id="reportTop10" class="report-content"></div>
+                            </div>
+                            <div class="report-section full-width">
+                                <h4><i class="fas fa-exclamation-triangle"></i> Produtos com Estoque Crítico</h4>
+                                <div id="reportCritico" class="report-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="confirmModal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Confirmar</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">Tem certeza?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancelBtn">Cancelar</button>
+                <button class="btn btn-danger" id="modalConfirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
