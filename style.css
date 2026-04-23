@@ -1,0 +1,448 @@
+/* ============================================
+   RESET E BASE
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f4f8;
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+/* ============================================
+   ABAS
+   ============================================ */
+.tabs {
+  display: flex;
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.tab-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 15px 10px;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: #f5f5f5;
+  color: #2e7d32;
+}
+
+.tab-btn.active {
+  color: #2e7d32;
+  border-bottom-color: #2e7d32;
+  background: #f1f8e9;
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tab-content {
+  display: none;
+  animation: fadeIn 0.3s;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h2 {
+  color: #2e7d32;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+/* ============================================
+   FILTRO
+   ============================================ */
+.filtro {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  transition: border-color 0.2s;
+}
+
+.filtro:focus {
+  outline: none;
+  border-color: #43a047;
+}
+
+/* ============================================
+   TABELAS
+   ============================================ */
+.tabela-wrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #2e7d32;
+  color: white;
+}
+
+th {
+  padding: 12px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
+}
+
+tbody tr:hover {
+  background: #f9f9f9;
+}
+
+tbody tr.estoque-baixo {
+  background: #fff3e0;
+}
+
+tbody tr.estoque-baixo:hover {
+  background: #ffe0b2;
+}
+
+/* ============================================
+   FORMULÁRIO
+   ============================================ */
+.formulario {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 700px;
+}
+
+.campo {
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  outline: none;
+  border-color: #43a047;
+}
+
+.campo input[readonly] {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.campo textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* ============================================
+   BOTÕES
+   ============================================ */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-saida {
+  background: linear-gradient(135deg, #e65100 0%, #fb8c00 100%);
+}
+
+.btn-saida:hover {
+  box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+}
+
+/* ============================================
+   AUTOCOMPLETE
+   ============================================ */
+.autocomplete-wrapper {
+  position: relative;
+}
+
+.sugestoes-box {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.sugestao-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.sugestao-item:last-child {
+  border-bottom: none;
+}
+
+.sugestao-item:hover,
+.sugestao-item.selected {
+  background: #e8f5e9;
+}
+
+.sugestao-item strong {
+  color: #2e7d32;
+  font-size: 0.95rem;
+}
+
+.sugestao-item small {
+  margin-top: 3px;
+  font-size: 0.8rem;
+}
+
+.badge-qtd {
+  display: inline-block;
+  background: #43a047;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* ============================================
+   INFO BOX
+   ============================================ */
+.info-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #e8f5e9;
+  border-left: 4px solid #43a047;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.info-box strong {
+  color: #2e7d32;
+}
+
+.info-box small {
+  color: #555;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge-alerta {
+  display: inline-block;
+  background: #ff9800;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.badge-entrada {
+  display: inline-block;
+  background: #43a047;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-saida {
+  display: inline-block;
+  background: #fb8c00;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ============================================
+   MENSAGEM GLOBAL
+   ============================================ */
+#mensagem-global {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  animation: slideIn 0.3s;
+  max-width: 350px;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.mensagem-sucesso {
+  background: #43a047;
+}
+
+.mensagem-erro {
+  background: #e53935;
+}
+
+.mensagem-info {
+  background: #1e88e5;
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+@media (max-width: 600px) {
+  .header h1 {
+    font-size: 1.4rem;
+  }
+
+  .tab-btn {
+    font-size: 0.85rem;
+    padding: 12px 8px;
+    min-width: 90px;
+  }
+
+  .container {
+    padding: 15px 10px;
+  }
+
+  .formulario {
+    padding: 18px;
+  }
+
+  .linha {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+
+  #mensagem-global {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
