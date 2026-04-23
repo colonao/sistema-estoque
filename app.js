@@ -13,13 +13,8 @@ let historico = [];
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 Iniciando sistema...');
   
-  // Setup das abas
   setupTabs();
-  
-  // Carrega dados
   await carregarTodosDados();
-  
-  // Setup dos formulários
   setupAutocompleteEntrada();
   setupAutocompleteSaida();
   setupFormEntrada();
@@ -65,32 +60,15 @@ async function carregarEstoque() {
   }
 }
 
-async function obterHistorico() {
+async function carregarHistorico() {
   try {
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    const aba = ss.getSheetByName('Movimentacoes');
-    
-    if (!aba || aba.getLastRow() < 2) return [];
-    
-    const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 12).getValues();
-    
-    return dados.map(linha => ({
-      id: linha[0],
-      data: linha[1],
-      tipo: linha[2],
-      produto: linha[3],
-      ingrediente: linha[4],
-      classe: linha[5],
-      quantidade: linha[6],
-      unidade: linha[7],
-      origem: linha[8],
-      destino: linha[9],
-      responsavel: linha[10],
-      observacao: linha[11]
-    })).reverse();
-    
-  } catch (erro) {
-    return [];
+    const res = await fetch(`${API_URL}?action=getHistorico`);
+    const json = await res.json();
+    historico = json.data || [];
+    console.log(`✅ Histórico: ${historico.length} movimentações`);
+    renderizarHistorico();
+  } catch (e) {
+    console.error('❌ Erro histórico:', e);
   }
 }
 
@@ -396,7 +374,6 @@ function setupFormEntrada() {
     const produtoInput = document.getElementById('entrada-produto');
     const nomeProduto = produtoInput.value.trim();
     
-    // Validação: produto deve existir no cadastro
     const produtoValido = cadastro.find(p => (p.nome || '').toLowerCase() === nomeProduto.toLowerCase());
     if (!produtoValido) {
       mostrarMensagem('❌ Produto não existe no cadastro! Selecione da lista.', 'erro');
@@ -410,7 +387,8 @@ function setupFormEntrada() {
       classe: produtoValido.classe,
       quantidade: document.getElementById('entrada-quantidade').value,
       unidade: document.getElementById('entrada-unidade').value,
-      origem: document.getElementById('entrada-origem').value,
+      origem: document.getElementById('entrada-origem')?.value || '',
+      destino: document.getElementById('entrada-destino')?.value || '',
       responsavel: document.getElementById('entrada-responsavel').value,
       observacao: document.getElementById('entrada-observacao')?.value || ''
     };
@@ -430,7 +408,7 @@ function setupFormEntrada() {
         await carregarEstoque();
         await carregarHistorico();
       } else {
-        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+        mostrarMensagem('❌ Erro: ' + (json.error || json.message || 'desconhecido'), 'erro');
       }
     } catch (e) {
       console.error(e);
@@ -453,14 +431,12 @@ function setupFormSaida() {
     const nomeProduto = produtoInput.value.trim();
     const quantidade = Number(document.getElementById('saida-quantidade').value);
     
-    // Validação: produto deve existir no estoque
     const produtoEstoque = estoque.find(p => (p.produto || '').toLowerCase() === nomeProduto.toLowerCase());
     if (!produtoEstoque) {
       mostrarMensagem('❌ Produto não existe no estoque!', 'erro');
       return;
     }
     
-    // Validação: quantidade não pode exceder o estoque
     if (quantidade > Number(produtoEstoque.quantidade)) {
       mostrarMensagem(`❌ Quantidade excede o estoque! Disponível: ${produtoEstoque.quantidade} ${produtoEstoque.unidade}`, 'erro');
       return;
@@ -473,7 +449,8 @@ function setupFormSaida() {
       classe: produtoEstoque.classe,
       quantidade: quantidade,
       unidade: produtoEstoque.unidade,
-      destino: document.getElementById('saida-destino').value,
+      origem: document.getElementById('saida-origem')?.value || '',
+      destino: document.getElementById('saida-destino')?.value || '',
       responsavel: document.getElementById('saida-responsavel').value,
       observacao: document.getElementById('saida-observacao')?.value || ''
     };
@@ -493,7 +470,7 @@ function setupFormSaida() {
         await carregarEstoque();
         await carregarHistorico();
       } else {
-        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+        mostrarMensagem('❌ Erro: ' + (json.error || json.message || 'desconhecido'), 'erro');
       }
     } catch (e) {
       console.error(e);
