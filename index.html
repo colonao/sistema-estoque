@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🌱 Controle de Insumos Agrícolas</title>
   <link rel="stylesheet" href="style.css">
+  <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
 </head>
 <body>
   <header>
@@ -149,5 +150,7 @@
   </main>
 
   <script src="app.js"></script>
+  <?!= HtmlService.createHtmlOutputFromFile('app').getContent(); ?>
+
 </body>
 </html>
