@@ -165,4 +165,203 @@ function setupAutocompleteEntrada() {
       const div = document.createElement('div');
       div.className = 'sugestao-item';
       div.innerHTML = `<strong>${p.nome}</strong><small style="display:block;color:#666">${p.ingredienteAtivo || '-'} | ${p.classe || '-'}</small>`;
-      div.add
+      div.addEventListener('click', () => selecionarEntrada(p));
+      suggestions.appendChild(div);
+    });
+    suggestions.style.display = 'block';
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = suggestions.querySelectorAll('.sugestao-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); updateHighlight(items, selectedIndex); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); updateHighlight(items, selectedIndex); }
+    else if (e.key === 'Enter' && selectedIndex >= 0) { e.preventDefault(); items[selectedIndex].click(); }
+    else if (e.key === 'Escape') { suggestions.style.display = 'none'; }
+  });
+
+  function selecionarEntrada(p) {
+    input.value = p.nome;
+    suggestions.style.display = 'none';
+    if (info) {
+      info.innerHTML = `<div class="info-box">✅ <strong>${p.nome}</strong><br><small>Ingrediente: ${p.ingredienteAtivo || '-'} | Classe: ${p.classe || '-'}</small></div>`;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) suggestions.style.display = 'none';
+  });
+}
+
+function setupAutocompleteSaida() {
+  const input = document.getElementById('saida-produto');
+  const suggestions = document.getElementById('saida-sugestoes');
+  const info = document.getElementById('saida-info');
+  if (!input || !suggestions) return;
+  let selectedIndex = -1;
+
+  input.addEventListener('input', () => {
+    const termo = input.value.trim().toLowerCase();
+    suggestions.innerHTML = '';
+    if (info) info.innerHTML = '';
+    selectedIndex = -1;
+    if (termo.length < 1) { suggestions.style.display = 'none'; return; }
+    const filtrados = estoque.filter(p =>
+      Number(p.quantidade) > 0 && (
+        (p.produto || '').toLowerCase().includes(termo) ||
+        (p.ingredienteAtivo || '').toLowerCase().includes(termo) ||
+        (p.classe || '').toLowerCase().includes(termo)
+      )
+    ).slice(0, 10);
+    if (filtrados.length === 0) {
+      suggestions.innerHTML = '<div class="sugestao-item" style="color:#999">Nenhum produto disponível</div>';
+      suggestions.style.display = 'block';
+      return;
+    }
+    filtrados.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'sugestao-item';
+      div.innerHTML = `<strong>${p.produto}</strong><span class="badge-qtd">${p.quantidade} ${p.unidade || ''}</span><small style="display:block;color:#666">${p.ingredienteAtivo || '-'} | ${p.classe || '-'}</small>`;
+      div.addEventListener('click', () => selecionarSaida(p));
+      suggestions.appendChild(div);
+    });
+    suggestions.style.display = 'block';
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = suggestions.querySelectorAll('.sugestao-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); updateHighlight(items, selectedIndex); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, 0); updateHighlight(items, selectedIndex); }
+    else if (e.key === 'Enter' && selectedIndex >= 0) { e.preventDefault(); items[selectedIndex].click(); }
+    else if (e.key === 'Escape') { suggestions.style.display = 'none'; }
+  });
+
+  function selecionarSaida(p) {
+    input.value = p.produto;
+    suggestions.style.display = 'none';
+    if (info) {
+      info.innerHTML = `<div class="info-box">✅ <strong>${p.produto}</strong> - Disponível: <strong>${p.quantidade} ${p.unidade || ''}</strong><br><small>Ingrediente: ${p.ingredienteAtivo || '-'} | Classe: ${p.classe || '-'}</small></div>`;
+    }
+    const unidadeInput = document.getElementById('saida-unidade');
+    if (unidadeInput) unidadeInput.value = p.unidade || '';
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) suggestions.style.display = 'none';
+  });
+}
+
+function updateHighlight(items, index) {
+  items.forEach((item, i) => item.classList.toggle('selected', i === index));
+}
+
+function setupFormEntrada() {
+  const form = document.getElementById('form-entrada');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nomeProduto = document.getElementById('entrada-produto').value.trim();
+    const produtoValido = cadastro.find(p => (p.nome || '').toLowerCase() === nomeProduto.toLowerCase());
+    if (!produtoValido) {
+      mostrarMensagem('❌ Produto não existe no cadastro!', 'erro');
+      return;
+    }
+    const dados = {
+      action: 'registrarEntrada',
+      produto: produtoValido.nome,
+      ingredienteAtivo: produtoValido.ingredienteAtivo,
+      classe: produtoValido.classe,
+      quantidade: document.getElementById('entrada-quantidade').value,
+      unidade: document.getElementById('entrada-unidade').value,
+      origem: document.getElementById('entrada-origem').value,
+      destino: document.getElementById('entrada-destino').value,
+      responsavel: document.getElementById('entrada-responsavel').value,
+      observacao: document.getElementById('entrada-observacao').value
+    };
+    try {
+      mostrarMensagem('⏳ Registrando...', 'info');
+      const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(dados) });
+      const json = await res.json();
+      if (json.success) {
+        mostrarMensagem('✅ Entrada registrada!', 'sucesso');
+        form.reset();
+        document.getElementById('entrada-info').innerHTML = '';
+        await carregarEstoque();
+        await carregarHistorico();
+      } else {
+        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+      }
+    } catch (e) {
+      console.error(e);
+      mostrarMensagem('❌ Erro ao registrar', 'erro');
+    }
+  });
+}
+
+function setupFormSaida() {
+  const form = document.getElementById('form-saida');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nomeProduto = document.getElementById('saida-produto').value.trim();
+    const quantidade = Number(document.getElementById('saida-quantidade').value);
+    const produtoEstoque = estoque.find(p => (p.produto || '').toLowerCase() === nomeProduto.toLowerCase());
+    if (!produtoEstoque) {
+      mostrarMensagem('❌ Produto não existe no estoque!', 'erro');
+      return;
+    }
+    if (quantidade > Number(produtoEstoque.quantidade)) {
+      mostrarMensagem(`❌ Quantidade excede o estoque! Disponível: ${produtoEstoque.quantidade} ${produtoEstoque.unidade}`, 'erro');
+      return;
+    }
+    const dados = {
+      action: 'registrarSaida',
+      produto: produtoEstoque.produto,
+      ingredienteAtivo: produtoEstoque.ingredienteAtivo,
+      classe: produtoEstoque.classe,
+      quantidade: quantidade,
+      unidade: produtoEstoque.unidade,
+      origem: document.getElementById('saida-origem').value,
+      destino: document.getElementById('saida-destino').value,
+      responsavel: document.getElementById('saida-responsavel').value,
+      observacao: document.getElementById('saida-observacao').value
+    };
+    try {
+      mostrarMensagem('⏳ Registrando...', 'info');
+      const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(dados) });
+      const json = await res.json();
+      if (json.success) {
+        mostrarMensagem('✅ Saída registrada!', 'sucesso');
+        form.reset();
+        document.getElementById('saida-info').innerHTML = '';
+        await carregarEstoque();
+        await carregarHistorico();
+      } else {
+        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+      }
+    } catch (e) {
+      console.error(e);
+      mostrarMensagem('❌ Erro ao registrar', 'erro');
+    }
+  });
+}
+
+function setupFiltros() {
+  const fe = document.getElementById('filtro-estoque');
+  if (fe) fe.addEventListener('input', (e) => renderizarEstoque(e.target.value));
+  const fh = document.getElementById('filtro-historico');
+  if (fh) fh.addEventListener('input', (e) => renderizarHistorico(e.target.value));
+}
+
+function mostrarMensagem(texto, tipo = 'info') {
+  let msg = document.getElementById('mensagem-global');
+  if (!msg) {
+    msg = document.createElement('div');
+    msg.id = 'mensagem-global';
+    document.body.appendChild(msg);
+  }
+  msg.className = `mensagem-${tipo}`;
+  msg.textContent = texto;
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+}
+</script>
