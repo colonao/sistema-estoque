@@ -1,124 +1,162 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbyuOOKSFh5s3lIDJlQ1oGQHGRL-rRbbC33k8AAtCVW4QQH9W8gjWA5MYqekxQXuKHo4/exec';
 
+// ============================================
+// VARIÁVEIS GLOBAIS
+// ============================================
 let cadastro = [];
 let estoque = [];
 let historico = [];
 
-// ====== UTIL ======
-const $ = id => document.getElementById(id);
-const showLoading = () => $('loading').classList.remove('hidden');
-const hideLoading = () => $('loading').classList.add('hidden');
-
-function toast(msg, type = 'success') {
-  const t = $('toast');
-  t.textContent = msg;
-  t.className = `toast show ${type}`;
-  setTimeout(() => t.className = 'toast', 3500);
-}
-
-async function api(action, params = {}) {
-  showLoading();
-  try {
-    const url = new URL(API_URL);
-    url.searchParams.append('action', action);
-    Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
-    const res = await fetch(url);
-    return await res.json();
-  } catch (e) {
-    return { status: 'error', message: e.message };
-  } finally {
-    hideLoading();
-  }
-}
-
-// ====== TABS ======
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    $(btn.dataset.tab).classList.add('active');
-  });
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🚀 Iniciando sistema...');
+  
+  // Setup das abas
+  setupTabs();
+  
+  // Carrega dados
+  await carregarTodosDados();
+  
+  // Setup dos formulários
+  setupAutocompleteEntrada();
+  setupAutocompleteSaida();
+  setupFormEntrada();
+  setupFormSaida();
+  setupFiltros();
+  
+  console.log('✅ Sistema pronto!');
 });
 
-// ====== CARREGAR DADOS ======
+// ============================================
+// CARREGAMENTO DE DADOS
+// ============================================
+async function carregarTodosDados() {
+  await Promise.all([
+    carregarCadastro(),
+    carregarEstoque(),
+    carregarHistorico()
+  ]);
+}
+
 async function carregarCadastro() {
-  const r = await api('getCadastro');
-  if (r.status === 'success') cadastro = r.data;
-  else toast(r.message, 'error');
+  try {
+    const res = await fetch(`${API_URL}?action=getCadastro`);
+    const json = await res.json();
+    cadastro = json.data || [];
+    console.log(`✅ Cadastro: ${cadastro.length} produtos`);
+    if (cadastro.length > 0) console.log('Exemplo:', cadastro[0]);
+  } catch (e) {
+    console.error('❌ Erro cadastro:', e);
+    mostrarMensagem('Erro ao carregar cadastro', 'erro');
+  }
 }
 
 async function carregarEstoque() {
-  const r = await api('getEstoque');
-  if (r.status === 'success') {
-    estoque = r.data;
-    renderEstoque();
-  } else toast(r.message, 'error');
+  try {
+    const res = await fetch(`${API_URL}?action=getEstoque`);
+    const json = await res.json();
+    estoque = json.data || [];
+    console.log(`✅ Estoque: ${estoque.length} itens`);
+    renderizarEstoque();
+  } catch (e) {
+    console.error('❌ Erro estoque:', e);
+  }
 }
 
 async function carregarHistorico() {
-  const r = await api('getHistorico');
-  if (r.status === 'success') {
-    historico = r.data;
-    renderHistorico();
-  } else toast(r.message, 'error');
+  try {
+    const res = await fetch(`${API_URL}?action=getHistorico`);
+    const json = await res.json();
+    historico = json.data || [];
+    console.log(`✅ Histórico: ${historico.length} movimentações`);
+    renderizarHistorico();
+  } catch (e) {
+    console.error('❌ Erro histórico:', e);
+  }
 }
 
-// ====== RENDER ESTOQUE ======
-function renderEstoque() {
-  const filtro = $('filtroEstoque').value.toLowerCase();
-  const tbody = $('tbodyEstoque');
-  const filtrado = estoque.filter(e =>
-    e.produto.toLowerCase().includes(filtro) ||
-    (e.ingredienteAtivo || '').toLowerCase().includes(filtro) ||
-    (e.classe || '').toLowerCase().includes(filtro)
+// ============================================
+// SISTEMA DE ABAS
+// ============================================
+function setupTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(target)?.classList.add('active');
+    });
+  });
+}
+
+// ============================================
+// RENDERIZAÇÃO DO ESTOQUE
+// ============================================
+function renderizarEstoque(filtro = '') {
+  const tbody = document.getElementById('tabela-estoque');
+  if (!tbody) return;
+  
+  const termo = filtro.toLowerCase();
+  const filtrados = estoque.filter(p =>
+    !termo ||
+    (p.produto || '').toLowerCase().includes(termo) ||
+    (p.ingredienteAtivo || '').toLowerCase().includes(termo) ||
+    (p.classe || '').toLowerCase().includes(termo)
   );
   
-  if (filtrado.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">Nenhum item em estoque</td></tr>';
+  if (filtrados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px">Nenhum produto encontrado</td></tr>';
     return;
   }
   
-  tbody.innerHTML = filtrado.map(e => `
-    <tr>
-      <td><strong>${e.produto}</strong></td>
-      <td>${e.ingredienteAtivo || '-'}</td>
-      <td>${e.classe || '-'}</td>
-      <td class="${e.quantidade <= 5 ? 'low-stock' : ''}">${e.quantidade}</td>
-      <td>${e.unidade || '-'}</td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtrados.map(p => {
+    const baixo = Number(p.quantidade) <= 5;
+    return `
+      <tr class="${baixo ? 'estoque-baixo' : ''}">
+        <td>${p.produto || '-'}</td>
+        <td>${p.ingredienteAtivo || '-'}</td>
+        <td>${p.classe || '-'}</td>
+        <td><strong>${p.quantidade || 0}</strong> ${p.unidade || ''}
+          ${baixo ? '<span class="badge-alerta">⚠️ Baixo</span>' : ''}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
-$('filtroEstoque').addEventListener('input', renderEstoque);
 
-// ====== RENDER HISTÓRICO ======
-function renderHistorico() {
-  const filtroTxt = $('filtroHistorico').value.toLowerCase();
-  const filtroTipo = $('filtroTipo').value;
-  const tbody = $('tbodyHistorico');
+// ============================================
+// RENDERIZAÇÃO DO HISTÓRICO
+// ============================================
+function renderizarHistorico(filtro = '') {
+  const tbody = document.getElementById('tabela-historico');
+  if (!tbody) return;
   
-  const filtrado = historico.filter(h => {
-    const matchTipo = !filtroTipo || h.tipo === filtroTipo;
-    const matchTxt = !filtroTxt ||
-      h.produto.toLowerCase().includes(filtroTxt) ||
-      (h.origem || '').toLowerCase().includes(filtroTxt) ||
-      (h.destino || '').toLowerCase().includes(filtroTxt) ||
-      (h.responsavel || '').toLowerCase().includes(filtroTxt);
-    return matchTipo && matchTxt;
-  });
+  const termo = filtro.toLowerCase();
+  const filtrados = historico.filter(h =>
+    !termo ||
+    (h.produto || '').toLowerCase().includes(termo) ||
+    (h.tipo || '').toLowerCase().includes(termo) ||
+    (h.responsavel || '').toLowerCase().includes(termo)
+  );
   
-  if (filtrado.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">Nenhuma movimentação</td></tr>';
+  if (filtrados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px">Sem movimentações</td></tr>';
     return;
   }
   
-  tbody.innerHTML = filtrado.map(h => `
+  tbody.innerHTML = filtrados.map(h => `
     <tr>
-      <td>${h.data}</td>
-      <td><span class="badge badge-${h.tipo.toLowerCase()}">${h.tipo}</span></td>
-      <td><strong>${h.produto}</strong></td>
-      <td>${h.quantidade}</td>
-      <td>${h.unidade}</td>
+      <td>${h.id || '-'}</td>
+      <td>${formatarData(h.data)}</td>
+      <td><span class="badge-${(h.tipo || '').toLowerCase()}">${h.tipo || '-'}</span></td>
+      <td>${h.produto || '-'}</td>
+      <td>${h.quantidade || 0} ${h.unidade || ''}</td>
       <td>${h.origem || '-'}</td>
       <td>${h.destino || '-'}</td>
       <td>${h.responsavel || '-'}</td>
@@ -126,239 +164,357 @@ function renderHistorico() {
     </tr>
   `).join('');
 }
-$('filtroHistorico').addEventListener('input', renderHistorico);
-$('filtroTipo').addEventListener('change', renderHistorico);
 
-// ====================================
-// AUTOCOMPLETE - FUNÇÃO GENÉRICA
-// ====================================
-function criarAutocomplete(config) {
-  const { inputId, hiddenId, sugestoesId, infoId, getLista, onSelect, msgVazio } = config;
-  const input = $(inputId);
-  const hidden = $(hiddenId);
-  const boxSugestoes = $(sugestoesId);
-  const info = $(infoId);
-  let indiceAtivo = -1;
-  let itensAtuais = [];
+function formatarData(data) {
+  if (!data) return '-';
+  try {
+    const d = new Date(data);
+    return d.toLocaleString('pt-BR');
+  } catch {
+    return data;
+  }
+}
+
+// ============================================
+// AUTOCOMPLETE - ENTRADA
+// ============================================
+function setupAutocompleteEntrada() {
+  const input = document.getElementById('entrada-produto');
+  const suggestions = document.getElementById('entrada-sugestoes');
+  const info = document.getElementById('entrada-info');
   
-  function filtrar(termo) {
-    const lista = getLista();
-    if (!termo) return lista.slice(0, 20); // mostra 20 primeiros
-    const t = termo.toLowerCase();
-    return lista.filter(item =>
-      item.nome.toLowerCase().includes(t) ||
-      (item.ingredienteAtivo || '').toLowerCase().includes(t) ||
-      (item.classe || '').toLowerCase().includes(t)
-    ).slice(0, 20);
+  if (!input || !suggestions) {
+    console.warn('⚠️ Elementos entrada não encontrados');
+    return;
   }
   
-  function renderSugestoes(itens) {
-    itensAtuais = itens;
-    indiceAtivo = -1;
+  let selectedIndex = -1;
+  
+  input.addEventListener('input', () => {
+    const termo = input.value.trim().toLowerCase();
+    suggestions.innerHTML = '';
+    if (info) info.innerHTML = '';
+    selectedIndex = -1;
     
-    if (itens.length === 0) {
-      boxSugestoes.innerHTML = `<div class="sugestoes-vazio">${msgVazio}</div>`;
-      boxSugestoes.classList.remove('hidden');
+    if (termo.length < 1) {
+      suggestions.style.display = 'none';
       return;
     }
     
-    boxSugestoes.innerHTML = itens.map((item, i) => `
-      <div class="sugestao-item" data-index="${i}">
-        ${item.qtdEstoque !== undefined ? `<span class="qtd-estoque">${item.qtdEstoque} ${item.unidade || ''}</span>` : ''}
-        <strong>${item.nome}</strong>
-        <small>${item.ingredienteAtivo || '—'} ${item.classe ? '• ' + item.classe : ''}</small>
-      </div>
-    `).join('');
-    boxSugestoes.classList.remove('hidden');
+    const filtrados = cadastro.filter(p =>
+      (p.nome || '').toLowerCase().includes(termo) ||
+      (p.ingredienteAtivo || '').toLowerCase().includes(termo) ||
+      (p.classe || '').toLowerCase().includes(termo)
+    ).slice(0, 10);
     
-    // click handlers
-    boxSugestoes.querySelectorAll('.sugestao-item').forEach(el => {
-      el.addEventListener('click', () => {
-        selecionar(itens[parseInt(el.dataset.index)]);
-      });
+    if (filtrados.length === 0) {
+      suggestions.innerHTML = '<div class="sugestao-item" style="color:#999">Nenhum produto encontrado no cadastro</div>';
+      suggestions.style.display = 'block';
+      return;
+    }
+    
+    filtrados.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'sugestao-item';
+      div.innerHTML = `
+        <strong>${p.nome}</strong>
+        <small style="display:block;color:#666">${p.ingredienteAtivo || '-'} | ${p.classe || '-'}</small>
+      `;
+      div.addEventListener('click', () => selecionarEntrada(p));
+      suggestions.appendChild(div);
     });
-  }
-  
-  function selecionar(item) {
-    input.value = item.nome;
-    hidden.value = item.nome;
-    boxSugestoes.classList.add('hidden');
-    info.textContent = `✓ ${item.ingredienteAtivo || ''} ${item.classe ? '• ' + item.classe : ''}`;
-    if (onSelect) onSelect(item);
-  }
-  
-  input.addEventListener('input', () => {
-    hidden.value = ''; // limpa validação até selecionar
-    info.textContent = '';
-    renderSugestoes(filtrar(input.value));
+    suggestions.style.display = 'block';
   });
   
-  input.addEventListener('focus', () => {
-    renderSugestoes(filtrar(input.value));
-  });
-  
-  input.addEventListener('blur', () => {
-    // delay pra permitir clique na sugestão
-    setTimeout(() => {
-      boxSugestoes.classList.add('hidden');
-      // valida se o texto bate com algum item
-      const lista = getLista();
-      const match = lista.find(i => i.nome.toLowerCase() === input.value.toLowerCase());
-      if (match) {
-        selecionar(match);
-      } else if (input.value) {
-        info.textContent = '⚠️ Produto não encontrado. Selecione da lista.';
-        info.style.background = '#fdecea';
-        info.style.borderLeftColor = '#c0392b';
-        info.style.color = '#c0392b';
-        hidden.value = '';
-      }
-    }, 200);
-  });
-  
-  // Navegação com teclado
   input.addEventListener('keydown', (e) => {
-    const items = boxSugestoes.querySelectorAll('.sugestao-item');
+    const items = suggestions.querySelectorAll('.sugestao-item');
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      indiceAtivo = Math.min(indiceAtivo + 1, items.length - 1);
-      atualizarAtivo(items);
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateHighlight(items, selectedIndex);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      indiceAtivo = Math.max(indiceAtivo - 1, 0);
-      atualizarAtivo(items);
-    } else if (e.key === 'Enter' && indiceAtivo >= 0) {
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      updateHighlight(items, selectedIndex);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
-      selecionar(itensAtuais[indiceAtivo]);
+      items[selectedIndex].click();
     } else if (e.key === 'Escape') {
-      boxSugestoes.classList.add('hidden');
+      suggestions.style.display = 'none';
     }
   });
   
-  function atualizarAtivo(items) {
-    items.forEach((it, i) => it.classList.toggle('active', i === indiceAtivo));
-    if (items[indiceAtivo]) items[indiceAtivo].scrollIntoView({ block: 'nearest' });
+  function selecionarEntrada(p) {
+    input.value = p.nome;
+    input.dataset.ingrediente = p.ingredienteAtivo || '';
+    input.dataset.classe = p.classe || '';
+    suggestions.style.display = 'none';
+    if (info) {
+      info.innerHTML = `
+        <div class="info-box">
+          ✅ <strong>${p.nome}</strong><br>
+          <small>Ingrediente: ${p.ingredienteAtivo || '-'} | Classe: ${p.classe || '-'}</small>
+        </div>
+      `;
+    }
   }
   
-  // Reseta estilo do info quando digita
-  input.addEventListener('input', () => {
-    info.style.background = '';
-    info.style.borderLeftColor = '';
-    info.style.color = '';
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.style.display = 'none';
+    }
   });
 }
 
-// ====== AUTOCOMPLETE ENTRADA (todos produtos do cadastro) ======
-criarAutocomplete({
-  inputId: 'entradaProduto',
-  hiddenId: 'entradaProdutoValido',
-  sugestoesId: 'entradaSugestoes',
-  infoId: 'entradaInfoProduto',
-  getLista: () => cadastro.map(p => ({
-    nome: p.nome,
-    ingredienteAtivo: p.ingredienteAtivo,
-    classe: p.classe
-  })),
-  msgVazio: 'Nenhum produto encontrado no cadastro'
-});
-
-// ====== AUTOCOMPLETE SAÍDA (apenas produtos com estoque > 0) ======
-criarAutocomplete({
-  inputId: 'saidaProduto',
-  hiddenId: 'saidaProdutoValido',
-  sugestoesId: 'saidaSugestoes',
-  infoId: 'saidaInfoProduto',
-  getLista: () => estoque
-    .filter(e => e.quantidade > 0)
-    .map(e => ({
-      nome: e.produto,
-      ingredienteAtivo: e.ingredienteAtivo,
-      classe: e.classe,
-      qtdEstoque: e.quantidade,
-      unidade: e.unidade
-    })),
-  msgVazio: 'Nenhum produto com estoque disponível',
-  onSelect: (item) => {
-    $('saidaDisponivel').value = `${item.qtdEstoque} ${item.unidade || ''}`;
-    if (item.unidade) $('saidaUnidade').value = item.unidade;
-  }
-});
-
-// ====== FORM ENTRADA ======
-$('formEntrada').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const produto = $('entradaProdutoValido').value || $('entradaProduto').value;
+// ============================================
+// AUTOCOMPLETE - SAÍDA
+// ============================================
+function setupAutocompleteSaida() {
+  const input = document.getElementById('saida-produto');
+  const suggestions = document.getElementById('saida-sugestoes');
+  const info = document.getElementById('saida-info');
   
-  // valida se bate com cadastro
-  const valido = cadastro.find(p => p.nome.toLowerCase() === produto.toLowerCase());
-  if (!valido) {
-    toast('Selecione um produto válido da lista', 'error');
+  if (!input || !suggestions) {
+    console.warn('⚠️ Elementos saída não encontrados');
     return;
   }
   
-  const dados = {
-    produto: valido.nome,
-    quantidade: $('entradaQtd').value,
-    unidade: $('entradaUnidade').value,
-    origem: $('entradaOrigem').value,
-    destino: $('entradaDestino').value,
-    responsavel: $('entradaResponsavel').value,
-    observacao: $('entradaObs').value
-  };
+  let selectedIndex = -1;
   
-  const r = await api('entrada', dados);
-  if (r.status === 'success') {
-    toast('✅ Entrada registrada!');
-    $('formEntrada').reset();
-    $('entradaProdutoValido').value = '';
-    $('entradaInfoProduto').textContent = '';
-    await carregarEstoque();
-    await carregarHistorico();
-  } else toast(r.message, 'error');
-});
-
-// ====== FORM SAÍDA ======
-$('formSaida').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const produto = $('saidaProdutoValido').value || $('saidaProduto').value;
+  input.addEventListener('input', () => {
+    const termo = input.value.trim().toLowerCase();
+    suggestions.innerHTML = '';
+    if (info) info.innerHTML = '';
+    selectedIndex = -1;
+    
+    if (termo.length < 1) {
+      suggestions.style.display = 'none';
+      return;
+    }
+    
+    const filtrados = estoque.filter(p =>
+      Number(p.quantidade) > 0 && (
+        (p.produto || '').toLowerCase().includes(termo) ||
+        (p.ingredienteAtivo || '').toLowerCase().includes(termo) ||
+        (p.classe || '').toLowerCase().includes(termo)
+      )
+    ).slice(0, 10);
+    
+    if (filtrados.length === 0) {
+      suggestions.innerHTML = '<div class="sugestao-item" style="color:#999">Nenhum produto disponível em estoque</div>';
+      suggestions.style.display = 'block';
+      return;
+    }
+    
+    filtrados.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'sugestao-item';
+      div.innerHTML = `
+        <strong>${p.produto}</strong>
+        <span class="badge-qtd">${p.quantidade} ${p.unidade || ''}</span>
+        <small style="display:block;color:#666">${p.ingredienteAtivo || '-'} | ${p.classe || '-'}</small>
+      `;
+      div.addEventListener('click', () => selecionarSaida(p));
+      suggestions.appendChild(div);
+    });
+    suggestions.style.display = 'block';
+  });
   
-  const itemEstoque = estoque.find(i => i.produto.toLowerCase() === produto.toLowerCase());
-  if (!itemEstoque || itemEstoque.quantidade <= 0) {
-    toast('Selecione um produto disponível em estoque', 'error');
-    return;
+  input.addEventListener('keydown', (e) => {
+    const items = suggestions.querySelectorAll('.sugestao-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateHighlight(items, selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+      updateHighlight(items, selectedIndex);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      items[selectedIndex].click();
+    } else if (e.key === 'Escape') {
+      suggestions.style.display = 'none';
+    }
+  });
+  
+  function selecionarSaida(p) {
+    input.value = p.produto;
+    input.dataset.estoque = p.quantidade;
+    input.dataset.unidade = p.unidade || '';
+    suggestions.style.display = 'none';
+    if (info) {
+      info.innerHTML = `
+        <div class="info-box">
+          ✅ <strong>${p.produto}</strong> - Disponível: <strong>${p.quantidade} ${p.unidade || ''}</strong><br>
+          <small>Ingrediente: ${p.ingredienteAtivo || '-'} | Classe: ${p.classe || '-'}</small>
+        </div>
+      `;
+    }
+    const unidadeInput = document.getElementById('saida-unidade');
+    if (unidadeInput) unidadeInput.value = p.unidade || '';
   }
   
-  const qtd = parseFloat($('saidaQtd').value);
-  if (qtd > itemEstoque.quantidade) {
-    toast(`Quantidade maior que disponível (${itemEstoque.quantidade})`, 'error');
-    return;
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.style.display = 'none';
+    }
+  });
+}
+
+function updateHighlight(items, index) {
+  items.forEach((item, i) => item.classList.toggle('selected', i === index));
+}
+
+// ============================================
+// FORMULÁRIO DE ENTRADA
+// ============================================
+function setupFormEntrada() {
+  const form = document.getElementById('form-entrada');
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const produtoInput = document.getElementById('entrada-produto');
+    const nomeProduto = produtoInput.value.trim();
+    
+    // Validação: produto deve existir no cadastro
+    const produtoValido = cadastro.find(p => (p.nome || '').toLowerCase() === nomeProduto.toLowerCase());
+    if (!produtoValido) {
+      mostrarMensagem('❌ Produto não existe no cadastro! Selecione da lista.', 'erro');
+      return;
+    }
+    
+    const dados = {
+      action: 'registrarEntrada',
+      produto: produtoValido.nome,
+      ingredienteAtivo: produtoValido.ingredienteAtivo,
+      classe: produtoValido.classe,
+      quantidade: document.getElementById('entrada-quantidade').value,
+      unidade: document.getElementById('entrada-unidade').value,
+      origem: document.getElementById('entrada-origem').value,
+      responsavel: document.getElementById('entrada-responsavel').value,
+      observacao: document.getElementById('entrada-observacao')?.value || ''
+    };
+    
+    try {
+      mostrarMensagem('⏳ Registrando entrada...', 'info');
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(dados)
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        mostrarMensagem('✅ Entrada registrada com sucesso!', 'sucesso');
+        form.reset();
+        document.getElementById('entrada-info').innerHTML = '';
+        await carregarEstoque();
+        await carregarHistorico();
+      } else {
+        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+      }
+    } catch (e) {
+      console.error(e);
+      mostrarMensagem('❌ Erro ao registrar entrada', 'erro');
+    }
+  });
+}
+
+// ============================================
+// FORMULÁRIO DE SAÍDA
+// ============================================
+function setupFormSaida() {
+  const form = document.getElementById('form-saida');
+  if (!form) return;
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const produtoInput = document.getElementById('saida-produto');
+    const nomeProduto = produtoInput.value.trim();
+    const quantidade = Number(document.getElementById('saida-quantidade').value);
+    
+    // Validação: produto deve existir no estoque
+    const produtoEstoque = estoque.find(p => (p.produto || '').toLowerCase() === nomeProduto.toLowerCase());
+    if (!produtoEstoque) {
+      mostrarMensagem('❌ Produto não existe no estoque!', 'erro');
+      return;
+    }
+    
+    // Validação: quantidade não pode exceder o estoque
+    if (quantidade > Number(produtoEstoque.quantidade)) {
+      mostrarMensagem(`❌ Quantidade excede o estoque! Disponível: ${produtoEstoque.quantidade} ${produtoEstoque.unidade}`, 'erro');
+      return;
+    }
+    
+    const dados = {
+      action: 'registrarSaida',
+      produto: produtoEstoque.produto,
+      ingredienteAtivo: produtoEstoque.ingredienteAtivo,
+      classe: produtoEstoque.classe,
+      quantidade: quantidade,
+      unidade: produtoEstoque.unidade,
+      destino: document.getElementById('saida-destino').value,
+      responsavel: document.getElementById('saida-responsavel').value,
+      observacao: document.getElementById('saida-observacao')?.value || ''
+    };
+    
+    try {
+      mostrarMensagem('⏳ Registrando saída...', 'info');
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(dados)
+      });
+      const json = await res.json();
+      
+      if (json.success) {
+        mostrarMensagem('✅ Saída registrada com sucesso!', 'sucesso');
+        form.reset();
+        document.getElementById('saida-info').innerHTML = '';
+        await carregarEstoque();
+        await carregarHistorico();
+      } else {
+        mostrarMensagem('❌ Erro: ' + (json.error || 'desconhecido'), 'erro');
+      }
+    } catch (e) {
+      console.error(e);
+      mostrarMensagem('❌ Erro ao registrar saída', 'erro');
+    }
+  });
+}
+
+// ============================================
+// FILTROS
+// ============================================
+function setupFiltros() {
+  const filtroEstoque = document.getElementById('filtro-estoque');
+  if (filtroEstoque) {
+    filtroEstoque.addEventListener('input', (e) => renderizarEstoque(e.target.value));
   }
   
-  const dados = {
-    produto: itemEstoque.produto,
-    quantidade: qtd,
-    unidade: $('saidaUnidade').value,
-    origem: $('saidaOrigem').value,
-    destino: $('saidaDestino').value,
-    responsavel: $('saidaResponsavel').value,
-    observacao: $('saidaObs').value
-  };
-  
-  const r = await api('saida', dados);
-  if (r.status === 'success') {
-    toast('✅ Saída registrada!');
-    $('formSaida').reset();
-    $('saidaProdutoValido').value = '';
-    $('saidaDisponivel').value = '';
-    $('saidaInfoProduto').textContent = '';
-    await carregarEstoque();
-    await carregarHistorico();
-  } else toast(r.message, 'error');
-});
+  const filtroHistorico = document.getElementById('filtro-historico');
+  if (filtroHistorico) {
+    filtroHistorico.addEventListener('input', (e) => renderizarHistorico(e.target.value));
+  }
+}
 
-// ====== INIT ======
-(async () => {
-  await carregarCadastro();
-  await carregarEstoque();
-  await carregarHistorico();
-})();
+// ============================================
+// MENSAGENS
+// ============================================
+function mostrarMensagem(texto, tipo = 'info') {
+  let msg = document.getElementById('mensagem-global');
+  if (!msg) {
+    msg = document.createElement('div');
+    msg.id = 'mensagem-global';
+    document.body.appendChild(msg);
+  }
+  msg.className = `mensagem mensagem-${tipo}`;
+  msg.textContent = texto;
+  msg.style.display = 'block';
+  
+  setTimeout(() => {
+    msg.style.display = 'none';
+  }, 4000);
+}
