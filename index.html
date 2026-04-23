@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🌱 Controle de Insumos Agrícolas</title>
-  <link rel="stylesheet" href="style.css">
   <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
 </head>
 <body>
-  <header>
+  <header class="header">
     <h1>🌱 Controle de Insumos</h1>
+    <p>Gestão de estoque agrícola</p>
   </header>
 
   <!-- ABAS -->
@@ -20,11 +21,11 @@
     <button class="tab-btn" data-tab="tab-historico">📋 Histórico</button>
   </nav>
 
-  <main>
+  <main class="container">
     <!-- ESTOQUE -->
     <section id="tab-estoque" class="tab-content active">
       <h2>📦 Estoque Atual</h2>
-      <input type="text" id="filtro-estoque" placeholder="🔍 Buscar por produto, ingrediente ou classe...">
+      <input type="text" id="filtro-estoque" class="filtro" placeholder="🔍 Buscar por produto, ingrediente ou classe...">
       <div class="tabela-wrapper">
         <table>
           <thead>
@@ -43,20 +44,22 @@
     <!-- ENTRADA -->
     <section id="tab-entrada" class="tab-content">
       <h2>⬇️ Registrar Entrada</h2>
-      <form id="form-entrada">
-        <label>Produto *</label>
-        <div class="autocomplete-wrapper">
-          <input type="text" id="entrada-produto" placeholder="Digite para buscar..." autocomplete="off" required>
-          <div id="entrada-sugestoes" class="sugestoes"></div>
+      <form id="form-entrada" class="formulario">
+        <div class="campo">
+          <label>Produto *</label>
+          <div class="autocomplete-wrapper">
+            <input type="text" id="entrada-produto" placeholder="Digite para buscar..." autocomplete="off" required>
+            <div id="entrada-sugestoes" class="sugestoes-box"></div>
+          </div>
+          <div id="entrada-info"></div>
         </div>
-        <div id="entrada-info"></div>
 
-        <div class="form-row">
-          <div class="form-col">
+        <div class="linha">
+          <div class="campo">
             <label>Quantidade *</label>
             <input type="number" id="entrada-quantidade" step="0.01" min="0.01" required>
           </div>
-          <div class="form-col">
+          <div class="campo">
             <label>Unidade *</label>
             <select id="entrada-unidade" required>
               <option value="">Selecione</option>
@@ -70,17 +73,25 @@
           </div>
         </div>
 
-        <label>Origem * <small>(fornecedor, revenda, etc)</small></label>
-        <input type="text" id="entrada-origem" placeholder="Ex: Agropecuária Central" required>
+        <div class="campo">
+          <label>Origem * <small>(fornecedor, revenda, etc)</small></label>
+          <input type="text" id="entrada-origem" placeholder="Ex: Agropecuária Central" required>
+        </div>
 
-        <label>Destino * <small>(local de armazenamento)</small></label>
-        <input type="text" id="entrada-destino" placeholder="Ex: Depósito 1, Galpão Principal" required>
+        <div class="campo">
+          <label>Destino * <small>(local de armazenamento)</small></label>
+          <input type="text" id="entrada-destino" placeholder="Ex: Depósito 1, Galpão Principal" required>
+        </div>
 
-        <label>Responsável *</label>
-        <input type="text" id="entrada-responsavel" placeholder="Nome de quem registrou" required>
+        <div class="campo">
+          <label>Responsável *</label>
+          <input type="text" id="entrada-responsavel" placeholder="Nome de quem registrou" required>
+        </div>
 
-        <label>Observação</label>
-        <textarea id="entrada-observacao" rows="2" placeholder="Opcional"></textarea>
+        <div class="campo">
+          <label>Observação</label>
+          <textarea id="entrada-observacao" rows="2" placeholder="Opcional"></textarea>
+        </div>
 
         <button type="submit" class="btn-primary">✅ Registrar Entrada</button>
       </form>
@@ -89,45 +100,55 @@
     <!-- SAÍDA -->
     <section id="tab-saida" class="tab-content">
       <h2>⬆️ Registrar Saída</h2>
-      <form id="form-saida">
-        <label>Produto *</label>
-        <div class="autocomplete-wrapper">
-          <input type="text" id="saida-produto" placeholder="Digite para buscar no estoque..." autocomplete="off" required>
-          <div id="saida-sugestoes" class="sugestoes"></div>
+      <form id="form-saida" class="formulario">
+        <div class="campo">
+          <label>Produto *</label>
+          <div class="autocomplete-wrapper">
+            <input type="text" id="saida-produto" placeholder="Digite para buscar no estoque..." autocomplete="off" required>
+            <div id="saida-sugestoes" class="sugestoes-box"></div>
+          </div>
+          <div id="saida-info"></div>
         </div>
-        <div id="saida-info"></div>
 
-        <div class="form-row">
-          <div class="form-col">
+        <div class="linha">
+          <div class="campo">
             <label>Quantidade *</label>
             <input type="number" id="saida-quantidade" step="0.01" min="0.01" required>
           </div>
-          <div class="form-col">
+          <div class="campo">
             <label>Unidade</label>
             <input type="text" id="saida-unidade" readonly>
           </div>
         </div>
 
-        <label>Origem * <small>(de onde saiu)</small></label>
-        <input type="text" id="saida-origem" placeholder="Ex: Depósito 1" required>
+        <div class="campo">
+          <label>Origem * <small>(de onde saiu)</small></label>
+          <input type="text" id="saida-origem" placeholder="Ex: Depósito 1" required>
+        </div>
 
-        <label>Destino * <small>(talhão, área, aplicação)</small></label>
-        <input type="text" id="saida-destino" placeholder="Ex: Talhão 3, Lavoura Norte" required>
+        <div class="campo">
+          <label>Destino * <small>(talhão, área, aplicação)</small></label>
+          <input type="text" id="saida-destino" placeholder="Ex: Talhão 3, Lavoura Norte" required>
+        </div>
 
-        <label>Responsável *</label>
-        <input type="text" id="saida-responsavel" placeholder="Nome de quem registrou" required>
+        <div class="campo">
+          <label>Responsável *</label>
+          <input type="text" id="saida-responsavel" placeholder="Nome de quem registrou" required>
+        </div>
 
-        <label>Observação</label>
-        <textarea id="saida-observacao" rows="2" placeholder="Opcional"></textarea>
+        <div class="campo">
+          <label>Observação</label>
+          <textarea id="saida-observacao" rows="2" placeholder="Opcional"></textarea>
+        </div>
 
-        <button type="submit" class="btn-primary">✅ Registrar Saída</button>
+        <button type="submit" class="btn-primary btn-saida">✅ Registrar Saída</button>
       </form>
     </section>
 
     <!-- HISTÓRICO -->
     <section id="tab-historico" class="tab-content">
       <h2>📋 Histórico de Movimentações</h2>
-      <input type="text" id="filtro-historico" placeholder="🔍 Buscar por produto, tipo ou responsável...">
+      <input type="text" id="filtro-historico" class="filtro" placeholder="🔍 Buscar por produto, tipo ou responsável...">
       <div class="tabela-wrapper">
         <table>
           <thead>
@@ -149,8 +170,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
   <?!= HtmlService.createHtmlOutputFromFile('app').getContent(); ?>
-
 </body>
 </html>
