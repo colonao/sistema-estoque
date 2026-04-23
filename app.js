@@ -65,15 +65,32 @@ async function carregarEstoque() {
   }
 }
 
-async function carregarHistorico() {
+async function obterHistorico() {
   try {
-    const res = await fetch(`${API_URL}?action=getHistorico`);
-    const json = await res.json();
-    historico = json.data || [];
-    console.log(`✅ Histórico: ${historico.length} movimentações`);
-    renderizarHistorico();
-  } catch (e) {
-    console.error('❌ Erro histórico:', e);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const aba = ss.getSheetByName('Movimentacoes');
+    
+    if (!aba || aba.getLastRow() < 2) return [];
+    
+    const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 12).getValues();
+    
+    return dados.map(linha => ({
+      id: linha[0],
+      data: linha[1],
+      tipo: linha[2],
+      produto: linha[3],
+      ingrediente: linha[4],
+      classe: linha[5],
+      quantidade: linha[6],
+      unidade: linha[7],
+      origem: linha[8],
+      destino: linha[9],
+      responsavel: linha[10],
+      observacao: linha[11]
+    })).reverse();
+    
+  } catch (erro) {
+    return [];
   }
 }
 
