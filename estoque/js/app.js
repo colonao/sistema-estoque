@@ -1,4 +1,4 @@
-const API_URL = 'COLOQUE_SUA_URL_DO_APPS_SCRIPT_AQUI';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyuOOKSFh5s3lIDJlQ1oGQHGRL-rRbbC33k8AAtCVW4QQH9W8gjWA5MYqekxQXuKHo4/exec';
 
 let cadastro = [];
 let estoque = [];
