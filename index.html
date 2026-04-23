@@ -41,93 +41,99 @@
     </div>
   </section>
 
-  <!-- ENTRADA -->
-  <section id="entrada" class="tab-content">
-    <h2>Registrar Entrada</h2>
-    <form id="formEntrada" class="form-grid">
-      <div class="form-group">
-        <label>Produto *</label>
-        <select id="entradaProduto" required></select>
-      </div>
-      <div class="form-group">
-        <label>Quantidade *</label>
-        <input type="number" id="entradaQtd" step="0.01" min="0.01" required>
-      </div>
-      <div class="form-group">
-        <label>Unidade</label>
-        <select id="entradaUnidade">
-          <option value="kg">kg</option>
-          <option value="L">L</option>
-          <option value="un">un</option>
-          <option value="saco">saco</option>
-          <option value="ton">ton</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Origem (fornecedor/local)</label>
-        <input type="text" id="entradaOrigem" placeholder="Ex: Fornecedor XYZ">
-      </div>
-      <div class="form-group">
-        <label>Destino (depósito/fazenda)</label>
-        <input type="text" id="entradaDestino" placeholder="Ex: Depósito Central">
-      </div>
-      <div class="form-group">
-        <label>Responsável</label>
-        <input type="text" id="entradaResponsavel">
-      </div>
-      <div class="form-group full">
-        <label>Observação</label>
-        <textarea id="entradaObs" rows="2"></textarea>
-      </div>
-      <button type="submit" class="btn-primary full">✅ Registrar Entrada</button>
-    </form>
-  </section>
+<!-- ENTRADA -->
+<section id="entrada" class="tab-content">
+  <h2>Registrar Entrada</h2>
+  <form id="formEntrada" class="form-grid">
+    <div class="form-group full autocomplete-wrapper">
+      <label>Produto * <small>(digite para buscar)</small></label>
+      <input type="text" id="entradaProduto" autocomplete="off" placeholder="Digite o nome do produto..." required>
+      <input type="hidden" id="entradaProdutoValido" value="">
+      <div id="entradaSugestoes" class="sugestoes hidden"></div>
+      <small id="entradaInfoProduto" class="info-produto"></small>
+    </div>
+    <div class="form-group">
+      <label>Quantidade *</label>
+      <input type="number" id="entradaQtd" step="0.01" min="0.01" required>
+    </div>
+    <div class="form-group">
+      <label>Unidade</label>
+      <select id="entradaUnidade">
+        <option value="kg">kg</option>
+        <option value="L">L</option>
+        <option value="un">un</option>
+        <option value="saco">saco</option>
+        <option value="ton">ton</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Origem (fornecedor/local)</label>
+      <input type="text" id="entradaOrigem" placeholder="Ex: Fornecedor XYZ">
+    </div>
+    <div class="form-group">
+      <label>Destino (depósito/fazenda)</label>
+      <input type="text" id="entradaDestino" placeholder="Ex: Depósito Central">
+    </div>
+    <div class="form-group">
+      <label>Responsável</label>
+      <input type="text" id="entradaResponsavel">
+    </div>
+    <div class="form-group full">
+      <label>Observação</label>
+      <textarea id="entradaObs" rows="2"></textarea>
+    </div>
+    <button type="submit" class="btn-primary full">✅ Registrar Entrada</button>
+  </form>
+</section>
 
-  <!-- SAÍDA -->
-  <section id="saida" class="tab-content">
-    <h2>Registrar Saída</h2>
-    <form id="formSaida" class="form-grid">
-      <div class="form-group">
-        <label>Produto *</label>
-        <select id="saidaProduto" required></select>
-      </div>
-      <div class="form-group">
-        <label>Quantidade disponível</label>
-        <input type="text" id="saidaDisponivel" readonly>
-      </div>
-      <div class="form-group">
-        <label>Quantidade a retirar *</label>
-        <input type="number" id="saidaQtd" step="0.01" min="0.01" required>
-      </div>
-      <div class="form-group">
-        <label>Unidade</label>
-        <select id="saidaUnidade">
-          <option value="kg">kg</option>
-          <option value="L">L</option>
-          <option value="un">un</option>
-          <option value="saco">saco</option>
-          <option value="ton">ton</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Origem (de onde sai)</label>
-        <input type="text" id="saidaOrigem" placeholder="Ex: Depósito Central">
-      </div>
-      <div class="form-group">
-        <label>Destino (para onde vai)</label>
-        <input type="text" id="saidaDestino" placeholder="Ex: Talhão 5">
-      </div>
-      <div class="form-group">
-        <label>Responsável</label>
-        <input type="text" id="saidaResponsavel">
-      </div>
-      <div class="form-group full">
-        <label>Observação</label>
-        <textarea id="saidaObs" rows="2"></textarea>
-      </div>
-      <button type="submit" class="btn-danger full">✅ Registrar Saída</button>
-    </form>
-  </section>
+<!-- SAÍDA -->
+<section id="saida" class="tab-content">
+  <h2>Registrar Saída</h2>
+  <form id="formSaida" class="form-grid">
+    <div class="form-group full autocomplete-wrapper">
+      <label>Produto * <small>(apenas produtos em estoque)</small></label>
+      <input type="text" id="saidaProduto" autocomplete="off" placeholder="Digite para buscar no estoque..." required>
+      <input type="hidden" id="saidaProdutoValido" value="">
+      <div id="saidaSugestoes" class="sugestoes hidden"></div>
+      <small id="saidaInfoProduto" class="info-produto"></small>
+    </div>
+    <div class="form-group">
+      <label>Quantidade disponível</label>
+      <input type="text" id="saidaDisponivel" readonly>
+    </div>
+    <div class="form-group">
+      <label>Quantidade a retirar *</label>
+      <input type="number" id="saidaQtd" step="0.01" min="0.01" required>
+    </div>
+    <div class="form-group">
+      <label>Unidade</label>
+      <select id="saidaUnidade">
+        <option value="kg">kg</option>
+        <option value="L">L</option>
+        <option value="un">un</option>
+        <option value="saco">saco</option>
+        <option value="ton">ton</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Origem (de onde sai)</label>
+      <input type="text" id="saidaOrigem" placeholder="Ex: Depósito Central">
+    </div>
+    <div class="form-group">
+      <label>Destino (para onde vai)</label>
+      <input type="text" id="saidaDestino" placeholder="Ex: Talhão 5">
+    </div>
+    <div class="form-group">
+      <label>Responsável</label>
+      <input type="text" id="saidaResponsavel">
+    </div>
+    <div class="form-group full">
+      <label>Observação</label>
+      <textarea id="saidaObs" rows="2"></textarea>
+    </div>
+    <button type="submit" class="btn-danger full">✅ Registrar Saída</button>
+  </form>
+</section>
 
   <!-- HISTÓRICO -->
   <section id="historico" class="tab-content">
